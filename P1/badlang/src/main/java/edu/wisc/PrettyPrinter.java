@@ -19,11 +19,12 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
     // TODO: Implement all expression visitor methods
     @Override
     public String visitBinaryExpr(Expr.Binary expr) {
-        // TODO: Implement binary expression printing
-        // Example: (left operator right)
         if (expr == null){
             return "";
         }
+
+        // Recursively search the left side of the top level binary expression
+        // and build the string of the left side
         StringBuilder binaryS = new StringBuilder("");
         if(expr.left instanceof Expr.Binary){
             binaryS.append(visitBinaryExpr((Expr.Binary)expr.left));
@@ -41,12 +42,14 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
             binaryS.append(visitCallExpr((Expr.Call)expr.left));
         }
 
+        // Add top level operator to string
         String opSym = expr.operator.getSymbol();
         binaryS.append(" ");
         binaryS.append(opSym);
         binaryS.append( " ");
-        System.out.println(" " + opSym + " ");
 
+        // Recursively search the right side of the top level binary expression
+        // and build the string of the right side
         if(expr.right instanceof Expr.Binary){
             binaryS.append(visitBinaryExpr((Expr.Binary)expr.right));
         }
@@ -73,18 +76,14 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
         
         // Handle the case that the Literal is an Integer
         if(expr.value instanceof Integer){
-            String value = expr.value.toString();
-            System.out.print(value);
-            return value;
+            return expr.value.toString();
         }
         // Handle the case that the Literal is a Boolean
         else if(expr.value instanceof Boolean){
             if(Boolean.TRUE.equals(expr.value)){
-                System.out.print("true");
                 return "true";
             }
             else{
-                System.out.print("false");
                 return "false";
             }
         }
@@ -95,9 +94,32 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
 
     @Override
     public String visitUnaryExpr(Expr.Unary expr) {
-        // TODO: Implement unary expression printing
-        // Example: !flag or -x
-        return "";
+        if(expr == null){
+            return "";
+        }
+        StringBuilder unaryS = new StringBuilder("");
+        String op = expr.operator.getSymbol();
+        unaryS.append(op);
+
+        if(expr.right instanceof Expr.Binary){
+            unaryS.append("(");
+            unaryS.append(visitBinaryExpr((Expr.Binary)expr.right));
+            unaryS.append(")");
+        }
+        else if(expr.right instanceof Expr.Literal){
+            unaryS.append(visitLiteralExpr((Expr.Literal)expr.right));
+        }
+        else if(expr.right instanceof Expr.Unary){
+            //TODO: ASK PROF IF THIS SHOULD BE INCLUDED
+            //unaryS.append(visitUnaryExpr((Expr.Unary)expr.right));
+        }
+        else if(expr.right instanceof Expr.Variable){
+            unaryS.append(visitVariableExpr((Expr.Variable)expr.right));
+        }
+        else if(expr.right instanceof Expr.Call){
+            unaryS.append(visitCallExpr((Expr.Call)expr.right));
+        }
+        return unaryS.toString();
     }
 
     @Override
