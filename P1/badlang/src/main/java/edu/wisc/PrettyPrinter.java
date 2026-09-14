@@ -125,14 +125,60 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
     @Override
     public String visitVariableExpr(Expr.Variable expr) {
         // TODO: Implement variable printing
-        return "";
+        if(expr == null){
+            return "";
+        }
+
+        return expr.name;
     }
 
     @Override
     public String visitCallExpr(Expr.Call expr) {
         // TODO: Implement function call printing
         // Example: functionName(arg1, arg2, arg3)
-        return "";
+        if(expr == null){
+            return "";
+        }
+
+        StringBuilder callS = new StringBuilder();
+
+        if(expr.callee instanceof Expr.Variable){
+            callS.append(visitVariableExpr((Expr.Variable) expr.callee));
+        }
+
+        callS.append("(");
+
+        int firstRun = 1;
+        for(Expr e : expr.arguments){
+            // I want to avoid placing a comma at the start of the 
+            // outer parantheses while also not placing a comma after the
+            // last argument
+            if(firstRun == 1){
+                firstRun = 0;
+            }
+            else{
+                callS.append(", ");
+            }
+
+            if(e instanceof Expr.Binary){
+                callS.append(visitBinaryExpr((Expr.Binary)e));
+            }
+            else if(e instanceof Expr.Literal){
+                callS.append(visitLiteralExpr((Expr.Literal)e));
+            }
+            else if(e instanceof Expr.Unary){
+                callS.append(visitUnaryExpr((Expr.Unary)e));
+            }
+            else if(e instanceof Expr.Variable){
+                callS.append(visitVariableExpr((Expr.Variable)e));
+            }
+            else if(e instanceof Expr.Call){
+                callS.append(visitCallExpr((Expr.Call)e));
+            }
+        }
+
+        callS.append(")");
+        return callS.toString();
     }
 
     // TODO: Implement all statement visitor methods
