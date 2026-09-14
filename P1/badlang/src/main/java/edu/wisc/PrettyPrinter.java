@@ -119,14 +119,21 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
             return "";
         }
 
-        return "return" + stmt.value.accept(this);
+        if(stmt.value == null){
+            return "return;";
+        }
+
+        return "return " + stmt.value.accept(this) + ";";
     }
 
     @Override
     public String visitPrintStmt(Stmt.Print stmt) {
         // TODO: Implement print statement printing
         // Example: print expression;
-        return "";
+        if(stmt == null){
+            return "";
+        }
+        return "print " + stmt.expression.accept(this) + ";";
     }
 
     @Override
@@ -137,14 +144,51 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
         //   statement1;
         //   statement2;
         // }
-        return "";
+        if(stmt == null){
+            return "";
+        }
+
+        if(stmt.statements.isEmpty()){
+            return "{}";
+        }
+
+        StringBuilder blockS = new StringBuilder();
+        blockS.append("{\n");
+        indentLevel++;
+        for(Stmt s : stmt.statements){
+            blockS.append(indent());
+            blockS.append(s.accept(this));
+            blockS.append("\n");
+        }
+        indentLevel--;
+        blockS.append(indent()).append("}");
+        return blockS.toString();
     }
 
     @Override
     public String visitIfStmt(Stmt.If stmt) {
         // TODO: Implement if statement printing
         // Example: if (condition) thenBranch else elseBranch
-        return "";
+        if(stmt == null){
+            return "";
+        }
+
+        StringBuilder ifS = new StringBuilder("if (")
+            .append(stmt.condition.accept(this))
+            .append(") {\n");
+        indentLevel++;
+        ifS.append(indent()).append(stmt.thenBranch.accept(this)).append("\n");
+        indentLevel--;
+        ifS.append(indent()).append("}");
+        if(stmt.elseBranch == null){
+            return ifS.toString();
+        }
+
+        ifS.append(" else {\n");
+        indentLevel++;
+        ifS.append(indent()).append(stmt.elseBranch.accept(this)).append("\n");
+        indentLevel--;
+        return ifS.append(indent()).append("}").toString();
     }
 
     @Override
