@@ -23,24 +23,8 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
             return "";
         }
 
-        // Recursively search the left side of the top level binary expression
-        // and build the string of the left side
         StringBuilder binaryS = new StringBuilder("");
-        if(expr.left instanceof Expr.Binary){
-            binaryS.append(visitBinaryExpr((Expr.Binary)expr.left));
-        }
-        else if(expr.left instanceof Expr.Literal){
-            binaryS.append(visitLiteralExpr((Expr.Literal)expr.left));
-        }
-        else if(expr.left instanceof Expr.Unary){
-            binaryS.append(visitUnaryExpr((Expr.Unary)expr.left));
-        }
-        else if(expr.left instanceof Expr.Variable){
-            binaryS.append(visitVariableExpr((Expr.Variable)expr.left));
-        }
-        else if(expr.left instanceof Expr.Call){
-            binaryS.append(visitCallExpr((Expr.Call)expr.left));
-        }
+        binaryS.append(expr.left.accept(this));
 
         // Add top level operator to string
         String opSym = expr.operator.getSymbol();
@@ -48,23 +32,7 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
         binaryS.append(opSym);
         binaryS.append( " ");
 
-        // Recursively search the right side of the top level binary expression
-        // and build the string of the right side
-        if(expr.right instanceof Expr.Binary){
-            binaryS.append(visitBinaryExpr((Expr.Binary)expr.right));
-        }
-        else if(expr.right instanceof Expr.Literal){
-            binaryS.append(visitLiteralExpr((Expr.Literal)expr.right));
-        }
-        else if(expr.right instanceof Expr.Unary){
-            binaryS.append(visitUnaryExpr((Expr.Unary)expr.right));
-        }
-        else if(expr.right instanceof Expr.Variable){
-            binaryS.append(visitVariableExpr((Expr.Variable)expr.right));
-        }
-        else if(expr.right instanceof Expr.Call){
-            binaryS.append(visitCallExpr((Expr.Call)expr.right));
-        }
+        binaryS.append(expr.right.accept(this));
         return binaryS.toString();
     }
 
@@ -74,22 +42,11 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
             return "";
         }
         
-        // Handle the case that the Literal is an Integer
-        if(expr.value instanceof Integer){
+        if(expr.value instanceof Integer || expr.value instanceof Boolean){
             return expr.value.toString();
         }
-        // Handle the case that the Literal is a Boolean
-        else if(expr.value instanceof Boolean){
-            if(Boolean.TRUE.equals(expr.value)){
-                return "true";
-            }
-            else{
-                return "false";
-            }
-        }
-        else{
-            return "";
-        }
+
+        return "";
     }
 
     @Override
@@ -97,29 +54,12 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
         if(expr == null){
             return "";
         }
-        StringBuilder unaryS = new StringBuilder("");
-        String op = expr.operator.getSymbol();
-        unaryS.append(op);
-
+        String operand = expr.right == null ? "" : expr.right.accept(this);
         if(expr.right instanceof Expr.Binary){
-            unaryS.append("(");
-            unaryS.append(visitBinaryExpr((Expr.Binary)expr.right));
-            unaryS.append(")");
+            operand = "(" + operand + ")";
         }
-        else if(expr.right instanceof Expr.Literal){
-            unaryS.append(visitLiteralExpr((Expr.Literal)expr.right));
-        }
-        else if(expr.right instanceof Expr.Unary){
-            //TODO: ASK PROF IF THIS SHOULD BE INCLUDED
-            //unaryS.append(visitUnaryExpr((Expr.Unary)expr.right));
-        }
-        else if(expr.right instanceof Expr.Variable){
-            unaryS.append(visitVariableExpr((Expr.Variable)expr.right));
-        }
-        else if(expr.right instanceof Expr.Call){
-            unaryS.append(visitCallExpr((Expr.Call)expr.right));
-        }
-        return unaryS.toString();
+
+        return expr.operator.getSymbol() + operand;
     }
 
     @Override
@@ -145,6 +85,9 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
         if(expr.callee instanceof Expr.Variable){
             callS.append(visitVariableExpr((Expr.Variable) expr.callee));
         }
+        else{
+            return "";
+        }
 
         callS.append("(");
 
@@ -160,21 +103,7 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
                 callS.append(", ");
             }
 
-            if(e instanceof Expr.Binary){
-                callS.append(visitBinaryExpr((Expr.Binary)e));
-            }
-            else if(e instanceof Expr.Literal){
-                callS.append(visitLiteralExpr((Expr.Literal)e));
-            }
-            else if(e instanceof Expr.Unary){
-                callS.append(visitUnaryExpr((Expr.Unary)e));
-            }
-            else if(e instanceof Expr.Variable){
-                callS.append(visitVariableExpr((Expr.Variable)e));
-            }
-            else if(e instanceof Expr.Call){
-                callS.append(visitCallExpr((Expr.Call)e));
-            }
+            callS.append(e.accept(this));
         }
 
         callS.append(")");
@@ -186,7 +115,11 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
     public String visitReturnStmt(Stmt.Return stmt) {
         // TODO: Implement return statement printing
         // Example: return expression; or return;
-        return "";
+        if(stmt == null){
+            return "";
+        }
+
+        return "return" + stmt.value.accept(this);
     }
 
     @Override
