@@ -195,7 +195,18 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
     public String visitVarStmt(Stmt.Var stmt) {
         // TODO: Implement variable declaration printing
         // Example: int variableName = initialValue; or bool flag;
-        return "";
+        if(stmt == null){
+            return "";
+        }
+
+        StringBuilder varS = new StringBuilder();
+        varS.append(stmt.type.toString()).append(" ").append(stmt.name);
+        if(stmt.initializer == null){
+            varS.append(";");
+            return varS.toString();
+        }
+        varS.append(" = ").append(stmt.initializer.accept(this)).append(";");
+        return varS.toString();
     }
 
     @Override
