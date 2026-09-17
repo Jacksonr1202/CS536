@@ -213,14 +213,21 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
     public String visitWhileStmt(Stmt.While stmt) {
         // TODO: Implement while loop printing
         // Example: while (condition) body
-        return "";
+        if(stmt == null){
+            return "";
+        }
+
+        StringBuilder whileS = new StringBuilder();
+        whileS.append("while (").append(stmt.condition.accept(this)).append("){\n")
+        .append(stmt.body.accept(this)).append("\n}");
+        return whileS.toString();
     }
 
     @Override
     public String visitExpressionStmt(Stmt.Expression stmt) {
         // TODO: Implement expression statement printing
         // Example: expression;
-        return "";
+        return stmt.expression.accept(this) + ";";
     }
 
     @Override
@@ -230,6 +237,24 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
         // fun int functionName(int param1, bool param2) {
         //   body statements
         // }
+        StringBuilder funcS = new StringBuilder();
+        funcS.append("fun ").append(stmt.returnType.toString()).append(" ");
+        funcS.append(stmt.name).append("(");
+        int firstRun = 1;
+        for(Stmt.Parameter param : stmt.params){
+            if(firstRun == 1){
+                firstRun = 0;
+            } else{
+                funcS.append(",");
+            }
+            funcS.append(param.type().toString()).append(" ").append(param.name());
+        }
+        funcS.append(") {\n");
+        indentLevel++;
+        for(Stmt s : stmt.body){
+            funcS.append(indent()).append(s.accept(this)).append("\n");
+        }
+        funcS.append(indent()).append("}");
         return "";
     }
 
@@ -237,6 +262,6 @@ public class PrettyPrinter implements Expr.Visitor<String>, Stmt.Visitor<String>
     public String visitAssignStmt(Stmt.Assign stmt) {
         // TODO: Implement assignment printing
         // Example: variableName = expression;
-        return "";
+        return stmt.name + " " + "= " + stmt.value.accept(this);
     }
 } 
